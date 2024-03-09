@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FlatList, ActivityIndicator, Text, StyleSheet, View } from 'react-native';
 import data from '../../utils/data'
 import InfoCard from './InfoCard';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@react-navigation/native';
-import Animated, { BounceInRight } from 'react-native-reanimated';
+import { supabase } from '../../supabase/supabase';
 
 const InfoScreen = () => {
   const [expandedCard, setExpandedCard] = useState(null);
@@ -12,28 +12,90 @@ const InfoScreen = () => {
   const [filter, setFilter] = useState(data.foods)
   const search = useSelector(state => state.search)
   const loading = useSelector(state => state.search.loading)
-  const [loadingFilters, setLoadingFilters] = useState(false)
   const categories = useSelector(state => state.categories.filters)
+  const [foodList, setFoodList] = useState([])
+  const [filteredResults, setFilteredResults] = useState([])
+  const [foodInfo, setFoodInfo] = useState({})
+
+  // useEffect(() => {
+  //   const fetchFood = async () => {
+  //     const { data } = await supabase
+  //       .from('foods')
+  //       .select(`
+  //       id, 
+  //       name,
+  //       season_icon,
+  //       product_category`)
+  //     setFoodList(data)
+  //   }
+  //   fetchFood()
+  // }, [])
+
+  const fetchInfo = useMemo(() => async (name) => {
+    try {
+      const response = await supabase
+        .from('foods')
+        .select(`
+          description,
+          nutritional_information (calories, protein, carbohydrates), 
+          benefits (benefit_text)`)
+        .eq('name', name)
+        .single();
+      return response;
+    } catch (error) {
+      console.log('Error fetching info:', error);
+      throw error;
+    }
+  }, []);
 
   useEffect(() => {
-    const categoryFilter = async () => {
-      setLoadingFilters(true)
-      try {
-        const filteredResults = data?.foods?.filter(item =>
-          categories.every(category => item.categories.includes(category))
-        );
-        if (categories.length === 0) {
-          setFilter(data.foods)
-        } else
-        setFilter(filteredResults);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoadingFilters(false)
+    if (categories.length > 0) {
+      const fetchCategory = async () => {
+        try {
+          const { data } = await supabase
+            .from('categories')
+            .select(`foods 
+          (id, 
+          name,
+          season_icon,
+          product_category)`)
+            .contains('category_name', categories)
+          const filteredData = data.map(({ foods }) => ({
+            id: foods.id,
+            name: foods.name,
+            product_category: foods.product_category,
+            season_icon: foods.season_icon,
+          }));
+          setFoodList(filteredData);
+        } catch (error) {
+          console.log('Error fetching info:', error);
+          throw error;
+        }
       }
+      fetchCategory()
+    } else {
+      const fetchFood = async () => {
+        const { data } = await supabase
+          .from('foods')
+          .select(`
+          id, 
+          name,
+          season_icon,
+          product_category`)
+        setFoodList(data)
+      }
+      fetchFood()
     }
-    categoryFilter()
-  }, [categories]);
+  }, [categories])
+
+  // const filterResults = useMemo(() => {
+  //   if (categories.length === 0) {
+  //     return data.foods;
+  //   }
+  //   return data.foods.filter(item =>
+  //     categories.every(category => item.categories.includes(category))
+  //   );
+  // }, [categories]);
 
   useEffect(() => {
     const filterFunc = () => {
@@ -49,20 +111,26 @@ const InfoScreen = () => {
     filterFunc();
   }, [search]);
 
+  console.log(foodList)
+
   return (
     <>
-      {loading || loadingFilters ? (
+      {loading ? (
         <ActivityIndicator style={{ flex: 1 }} size="large" color={colors.accent} />
       ) : (
         filter.length === 0
           ? <Text style={styles.text}>No results found</Text>
           : (
+            // <FlatList style={{ flex: 1, marginBottom: 12 }}
+            //   data={testData}
+            //   keyExtractor={item => item.id.toString()} 
+            //   renderItem={({item}) => <View><Text>{item.name}</Text></View>}
+            // />
             <FlatList
               style={{ flex: 1, marginBottom: 12 }}
-              data={filter}
-              ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+              data={foodList}
               keyExtractor={item => item.id.toString()}
-              renderItem={({ item }) => <Animated.View entering={BounceInRight}><InfoCard expandedCard={expandedCard} loading={loading || loadingFilters} setExpandedCard={setExpandedCard} food={item} /></Animated.View>}
+              renderItem={({ item }) => <View><InfoCard fetchInfo={fetchInfo} foodInfo={foodInfo} expandedCard={expandedCard} loading={loading} setExpandedCard={setExpandedCard} food={item} /></View>}
             />
           )
       )}

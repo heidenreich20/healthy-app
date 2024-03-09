@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useFonts } from 'expo-font'
 import { supabase } from './supabase/supabase'
-import { StyleSheet } from 'react-native'
 import { Provider } from 'react-redux'
 import { Session } from '@supabase/supabase-js'
 import store from './redux/store'
@@ -37,12 +36,3 @@ export default function App() {
     </Provider>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

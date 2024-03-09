@@ -4,6 +4,7 @@ import { Card } from 'react-native-elements';
 import { useTheme } from '@react-navigation/native';
 
 const Counts = ({ expanded, nutritional_information, description }) => {
+  const { calories, protein, carbohydrates } = nutritional_information[0];
   const { colors } = useTheme()  
 
   return (
@@ -12,15 +13,15 @@ const Counts = ({ expanded, nutritional_information, description }) => {
         <View style={{ flex: 1, flexDirection: 'row', gap: 12 }}>
           <Card containerStyle={[styles.card, { backgroundColor: colors.background, borderRadius: 6 }]}>
             <Card.Title style={{ color: colors.secondary_text, textAlign: 'center', marginBottom: 0 }}>Calorías</Card.Title>
-            <Text style={styles.text}>{nutritional_information.calories}kcal</Text>
+            <Text style={styles.text}>{calories}kcal</Text>
           </Card>
           <Card containerStyle={[styles.card, { backgroundColor: colors.background, borderRadius: 6 }]}>
             <Card.Title style={{ color: colors.secondary_text, textAlign: 'center', marginBottom: 0 }}>Proteínas</Card.Title>
-            <Text style={styles.text}>{nutritional_information.protein}g</Text>
+            <Text style={styles.text}>{protein}g</Text>
           </Card>
           <Card containerStyle={[styles.card, { backgroundColor: colors.background, borderRadius: 6 }]}>
             <Card.Title style={{ color: colors.secondary_text, textAlign: 'center', marginBottom: 0 }}>Grasas</Card.Title>
-            <Text style={styles.text}>{nutritional_information.fat}g</Text>
+            <Text style={styles.text}>{carbohydrates}g</Text>
           </Card>
         </View>
       </View>
