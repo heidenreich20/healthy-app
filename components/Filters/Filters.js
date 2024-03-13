@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useTheme } from '@react-navigation/native'
 import { Button } from 'react-native-elements'
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
@@ -8,12 +8,12 @@ import { categoriesLoading } from '../../redux/features/categories/categoriesSli
 import { useSelector, useDispatch } from 'react-redux'
 import ExpandButton from './ExpandButton'
 import CategoryButton from './CategoryButton'
+import { startLoading, finishLoading } from '../../redux/features/loading/loadingSlice'
 
 const categories = [
   {
     id: 1,
     name: 'Vegan',
-    icon: 'leaf',
   },
   {
     id: 2,
@@ -79,22 +79,6 @@ const categories = [
     id: 17,
     name: 'High Vitamin C',
   },
-  {
-    id: 18,
-    name: 'High Vitamin D',
-  },
-  {
-    id: 19,
-    name: 'High Vitamin B12',
-  },
-  {
-    id: 20,
-    name: 'High Vitamin A',
-  },
-  {
-    id: 21,
-    name: 'High Vitamin K',
-  },
 ]
 
 const Filters = () => {
@@ -114,7 +98,7 @@ const Filters = () => {
 
   const handleExpand = () => {
     setExpanded(!isExpanded);
-    height.value = height.value === 0 ? 400 : 0;
+    height.value = height.value === 0 ? 250 : 0;
   }
 
   const handleCategory = async (category) => {
@@ -126,59 +110,40 @@ const Filters = () => {
     }
   };
 
-  const applyFilters = () => {
-    dispatch(categoriesLoading(true));
+  const applyFilters = async () => {
     try {
       dispatch(addCategory(filters));
     } catch (error) {
       console.log(error);
-    } finally {
-      dispatch(categoriesLoading(false));
     }
   }
-
-  // const applyFilters = () => {
-  //   const isSelected = storeCategories.includes(category.name);
-  //   dispatch(categoriesLoading(true));
-  //   try {
-  //     if (isSelected) {
-  //       dispatch(removeCategory(category.name));
-  //     } else {
-  //       dispatch(addCategory(category.name));
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   } finally {
-  //     dispatch(categoriesLoading(false));
-  //   }
-  // }
-
-  console.log(filters.length)
 
   return (
     <View style={[!storeCategories ? styles.categoryContainer : null, styles.container]}>
       <ExpandButton isExpanded={isExpanded} colors={colors} handleExpand={handleExpand} />
-      <Animated.View style={[style, { flex: 0, overflow: 'hidden', alignItems: 'center', backgroundColor: colors.primary, alignContent: 'center', borderRadius: 6, padding: 12 }]}>
-        <View style={styles.categoryWrapper}>
-          {categories.map((category) => {
-            return (
-              <CategoryButton
-                key={category.id}
-                isSelected={filters.includes(category.name)}
-                category={category}
-                colors={colors}
-                handleCategory={handleCategory}
-              />
-            )
-          })}
-        </View>
-        <Button disabled={filters.length === 0 || filters === storeCategories} onPress={applyFilters} buttonStyle={{ backgroundColor: colors.accent, paddingHorizontal: 32 }} title='filter' />
-      </Animated.View>
+      <View style={{ flex: 0, gap: 12, alignContent: 'center', justifyContent: 'center' }}>
+        <Animated.View style={[style, { flex: 0, overflow: 'hidden', backgroundColor: 'rgba(255, 255, 255, 1)', alignContent: 'center', borderRadius: 6, gap: 12 }]}>
+          <View style={[styles.categoryWrapper, { backgroundColor: colors.primary }]}>
+            {categories.map((category) => {
+              return (
+                <CategoryButton
+                  key={category.id}
+                  isSelected={filters.includes(category.name)}
+                  category={category}
+                  colors={colors}
+                  handleCategory={handleCategory}
+                />
+              )
+            })}
+          </View>
+        </Animated.View>
+        {isExpanded ? <Button disabled={filters === storeCategories} onPress={applyFilters} containerStyle={{ flex: 0, alignItems: 'center' }} buttonStyle={{ width: '33%', backgroundColor: colors.accent }} title='filter' /> : null}
+      </View>
       <View style={[storeCategories.length ? { flex: 0, marginTop: 12 } : { display: 'none' }, styles.categoryListWrapper]}>
         <Text style={[styles.title, { color: colors.text }]}>Filters:</Text>
-        {storeCategories.map((category) => {
+        {storeCategories.map((category, index) => {
           return (
-            <Text style={[styles.categoryButton, { color: colors.primary, backgroundColor: colors.accent }]} key={category.id}>{category}</Text>
+            <Text key={index} style={[styles.categoryButton, { color: colors.primary, backgroundColor: colors.accent }]}>{category}</Text>
           )
         }
         )}
@@ -205,9 +170,11 @@ const styles = StyleSheet.create({
     flex: 1,
     flexWrap: 'wrap',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignContent: 'center',
     gap: 6,
-    flexDirection: 'row'
+    flexDirection: 'row',
+    padding: 12,
+    overflow: 'hidden',
   },
   categoryButton: {
     fontSize: 12,

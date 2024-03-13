@@ -5,31 +5,19 @@ import InfoCard from './InfoCard';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@react-navigation/native';
 import { supabase } from '../../supabase/supabase';
+import { startLoading, finishLoading } from '../../redux/features/loading/loadingSlice';
+import { useDispatch } from 'react-redux';
 
 const InfoScreen = () => {
+  const dispatch = useDispatch();
   const [expandedCard, setExpandedCard] = useState(null);
   const { colors } = useTheme()
   const [filter, setFilter] = useState(data.foods)
   const search = useSelector(state => state.search)
-  const loading = useSelector(state => state.search.loading)
+  const loading = useSelector(state => state.loading.isLoading)
   const categories = useSelector(state => state.categories.filters)
   const [foodList, setFoodList] = useState([])
-  const [filteredResults, setFilteredResults] = useState([])
   const [foodInfo, setFoodInfo] = useState({})
-
-  // useEffect(() => {
-  //   const fetchFood = async () => {
-  //     const { data } = await supabase
-  //       .from('foods')
-  //       .select(`
-  //       id, 
-  //       name,
-  //       season_icon,
-  //       product_category`)
-  //     setFoodList(data)
-  //   }
-  //   fetchFood()
-  // }, [])
 
   const fetchInfo = useMemo(() => async (name) => {
     try {
@@ -52,6 +40,7 @@ const InfoScreen = () => {
     if (categories.length > 0) {
       const fetchCategory = async () => {
         try {
+          dispatch(startLoading());
           const { data } = await supabase
             .from('categories')
             .select(`foods 
@@ -70,6 +59,8 @@ const InfoScreen = () => {
         } catch (error) {
           console.log('Error fetching info:', error);
           throw error;
+        } finally {
+          dispatch(finishLoading());
         }
       }
       fetchCategory()
@@ -111,21 +102,15 @@ const InfoScreen = () => {
     filterFunc();
   }, [search]);
 
-  console.log(foodList)
-
   return (
     <>
       {loading ? (
         <ActivityIndicator style={{ flex: 1 }} size="large" color={colors.accent} />
       ) : (
-        filter.length === 0
+        filter.length === 0 || foodList.length === 0
           ? <Text style={styles.text}>No results found</Text>
           : (
-            // <FlatList style={{ flex: 1, marginBottom: 12 }}
-            //   data={testData}
-            //   keyExtractor={item => item.id.toString()} 
-            //   renderItem={({item}) => <View><Text>{item.name}</Text></View>}
-            // />
+            
             <FlatList
               style={{ flex: 1, marginBottom: 12 }}
               data={foodList}
