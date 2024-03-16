@@ -100,8 +100,6 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 6,
     padding: 0,
-    marginTop: 0,
-    marginBottom: 12
   },
   wrapper: {
     flex: 1,
@@ -113,7 +111,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12
+    gap: 12,
   },
   image: {
     width: 50,

@@ -4,8 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { DefaultTheme, DarkTheme } from '../../utils/theme';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import InfoScreen from '../Info/InfoScreen';
 import HomeScreen from '../Home/HomeScreen';
+import Filters from '../Filters/Filters';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,9 +28,18 @@ function Nav({ session }) {
               color: scheme === 'dark' ? DarkTheme.colors.text : 'white'
             }
           }} name="Home" component={HomeScreen} />
-          <Stack.Screen options={{
-            headerShown: false,
-          }} name="Information" component={InfoScreen} />
+          <Stack.Screen 
+          options={{
+            headerStyle: {
+              backgroundColor: scheme === 'dark' ? DarkTheme.colors.background : DefaultTheme.colors.accent
+            },
+            headerTitleStyle: {
+              color: 'white'
+            },
+            headerTintColor: 'white'
+          }} 
+          name="Filters" 
+          component={Filters} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

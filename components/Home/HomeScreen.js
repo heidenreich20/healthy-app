@@ -6,12 +6,11 @@ import InfoScreen from '../Info/InfoScreen';
 import Search from '../Search/Search';
 import Filters from '../Filters/Filters';
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={{flex: 1}}>
-      <Search />
-      <Filters />
+      <Search navigation={navigation} />
       <InfoScreen />
     </View>
   )

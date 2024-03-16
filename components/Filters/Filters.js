@@ -1,14 +1,10 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import { useTheme } from '@react-navigation/native'
 import { Button } from 'react-native-elements'
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
-import { addCategory, removeCategory } from '../../redux/features/categories/categoriesSlice'
-import { categoriesLoading } from '../../redux/features/categories/categoriesSlice'
+import { addCategory } from '../../redux/features/categories/categoriesSlice'
 import { useSelector, useDispatch } from 'react-redux'
-import ExpandButton from './ExpandButton'
 import CategoryButton from './CategoryButton'
-import { startLoading, finishLoading } from '../../redux/features/loading/loadingSlice'
 
 const categories = [
   {
@@ -79,29 +75,35 @@ const categories = [
     id: 17,
     name: 'High Vitamin C',
   },
+  {
+    id: 18,
+    name: 'High Vitamin D',
+  },
+  {
+    id: 19,
+    name: 'High Vitamin B12',
+  },
+  {
+    id: 20,
+    name: 'High Vitamin A',
+  },
+  {
+    id: 21,
+    name: 'High Vitamin K1',
+  },
+  {
+    id: 22,
+    name: 'High Iron',
+  }
 ]
 
-const Filters = () => {
+const Filters = ({ navigation }) => {
   const dispatch = useDispatch()
   const { colors } = useTheme()
-  const [isExpanded, setExpanded] = useState(false)
-  const height = useSharedValue(0);
   const storeCategories = useSelector(state => state.categories.filters)
   const [filters, setFilters] = useState(storeCategories)
 
-  const style = useAnimatedStyle(() => {
-    return {
-      height: withTiming(height.value),
-      marginHorizontal: withTiming(height.value === 0 ? 0 : 16),
-    };
-  });
-
-  const handleExpand = () => {
-    setExpanded(!isExpanded);
-    height.value = height.value === 0 ? 250 : 0;
-  }
-
-  const handleCategory = async (category) => {
+  const handleCategory = (category) => {
     const isSelected = filters.includes(category.name);
     if (isSelected) {
       setFilters(filters.filter((filter) => filter !== category.name))
@@ -110,20 +112,20 @@ const Filters = () => {
     }
   };
 
-  const applyFilters = async () => {
+  const applyFilters = () => {
     try {
       dispatch(addCategory(filters));
     } catch (error) {
       console.log(error);
+    } finally {
+      navigation.goBack()
     }
   }
 
   return (
-    <View style={[!storeCategories ? styles.categoryContainer : null, styles.container]}>
-      <ExpandButton isExpanded={isExpanded} colors={colors} handleExpand={handleExpand} />
-      <View style={{ flex: 0, gap: 12, alignContent: 'center', justifyContent: 'center' }}>
-        <Animated.View style={[style, { flex: 0, overflow: 'hidden', backgroundColor: 'rgba(255, 255, 255, 1)', alignContent: 'center', borderRadius: 6, gap: 12 }]}>
-          <View style={[styles.categoryWrapper, { backgroundColor: colors.primary }]}>
+    <View style={{flex: 1}}>
+        <View style={{ flex: 1, justifyContent: 'center', backgroundColor: colors.primary }}>
+          <View style={styles.categoryWrapper}>
             {categories.map((category) => {
               return (
                 <CategoryButton
@@ -136,18 +138,8 @@ const Filters = () => {
               )
             })}
           </View>
-        </Animated.View>
-        {isExpanded ? <Button disabled={filters === storeCategories} onPress={applyFilters} containerStyle={{ flex: 0, alignItems: 'center' }} buttonStyle={{ width: '33%', backgroundColor: colors.accent }} title='filter' /> : null}
-      </View>
-      <View style={[storeCategories.length ? { flex: 0, marginTop: 12 } : { display: 'none' }, styles.categoryListWrapper]}>
-        <Text style={[styles.title, { color: colors.text }]}>Filters:</Text>
-        {storeCategories.map((category, index) => {
-          return (
-            <Text key={index} style={[styles.categoryButton, { color: colors.primary, backgroundColor: colors.accent }]}>{category}</Text>
-          )
-        }
-        )}
-      </View>
+          <Button disabled={filters === storeCategories} onPress={applyFilters} containerStyle={{ flex: 0, alignItems: 'center' }} buttonStyle={{ width: '33%', backgroundColor: colors.accent }} title='filter' />
+        </View>
     </View>
   )
 }
@@ -159,22 +151,20 @@ const styles = StyleSheet.create({
   },
   categoryContainer: {
     flex: 0,
-    gap: 12
+    gap: 12,
   },
   categoryListWrapper: {
     flexDirection: 'row',
     gap: 6,
-    marginHorizontal: 16
+    marginHorizontal: 16,
   },
   categoryWrapper: {
-    flex: 1,
     flexWrap: 'wrap',
     justifyContent: 'center',
     alignContent: 'center',
     gap: 6,
     flexDirection: 'row',
     padding: 12,
-    overflow: 'hidden',
   },
   categoryButton: {
     fontSize: 12,

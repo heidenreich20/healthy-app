@@ -25,8 +25,8 @@ const InfoScreen = () => {
         .from('foods')
         .select(`
           description,
-          nutritional_information (calories, protein, carbohydrates), 
-          benefits (benefit_text)`)
+          benefits,
+          nutritional_information (calories, protein, carbohydrates)`)
         .eq('name', name)
         .single();
       return response;
@@ -42,20 +42,10 @@ const InfoScreen = () => {
         try {
           dispatch(startLoading());
           const { data } = await supabase
-            .from('categories')
-            .select(`foods 
-          (id, 
-          name,
-          season_icon,
-          product_category)`)
-            .contains('category_name', categories)
-          const filteredData = data.map(({ foods }) => ({
-            id: foods.id,
-            name: foods.name,
-            product_category: foods.product_category,
-            season_icon: foods.season_icon,
-          }));
-          setFoodList(filteredData);
+            .from('foods')
+            .select(`id, name, season_icon, product_category`)
+          .contains('benefits', categories)
+          setFoodList(data);
         } catch (error) {
           console.log('Error fetching info:', error);
           throw error;
@@ -79,15 +69,6 @@ const InfoScreen = () => {
     }
   }, [categories])
 
-  // const filterResults = useMemo(() => {
-  //   if (categories.length === 0) {
-  //     return data.foods;
-  //   }
-  //   return data.foods.filter(item =>
-  //     categories.every(category => item.categories.includes(category))
-  //   );
-  // }, [categories]);
-
   useEffect(() => {
     const filterFunc = () => {
       try {
@@ -110,12 +91,10 @@ const InfoScreen = () => {
         filter.length === 0 || foodList.length === 0
           ? <Text style={styles.text}>No results found</Text>
           : (
-            
             <FlatList
-              style={{ flex: 1, marginBottom: 12 }}
               data={foodList}
               keyExtractor={item => item.id.toString()}
-              renderItem={({ item }) => <View><InfoCard fetchInfo={fetchInfo} foodInfo={foodInfo} expandedCard={expandedCard} loading={loading} setExpandedCard={setExpandedCard} food={item} /></View>}
+              renderItem={({ item }) => <InfoCard fetchInfo={fetchInfo} foodInfo={foodInfo} expandedCard={expandedCard} loading={loading} setExpandedCard={setExpandedCard} food={item} />}
             />
           )
       )}
