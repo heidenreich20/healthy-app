@@ -5,6 +5,7 @@ const categoriesSlice = createSlice({
     initialState: {
         filters: [],
         loading: false,
+        vegan: false
     },
     reducers: {
         addCategory: (state, action) => {
@@ -16,12 +17,15 @@ const categoriesSlice = createSlice({
                 state.filters.splice(index, 1);
             }
         },
+        toggleVegan: (state) => {
+            state.vegan = !state.vegan
+        },
         categoriesLoading: (state, action) => {
             state.loading = action.payload;
         },
     },
 });
 
-export const { addCategory, removeCategory, updateCategory, categoriesLoading } = categoriesSlice.actions;
+export const { addCategory, removeCategory, updateCategory, categoriesLoading, toggleVegan } = categoriesSlice.actions;
 
 export default categoriesSlice.reducer;

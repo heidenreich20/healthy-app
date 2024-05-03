@@ -7,6 +7,8 @@ import { useTheme } from '@react-navigation/native';
 import { supabase } from '../../supabase/supabase';
 import { startLoading, finishLoading } from '../../redux/features/loading/loadingSlice';
 import { useDispatch } from 'react-redux';
+import Footer from '../Footer/Footer';
+import { Button } from 'react-native-elements';
 
 const InfoScreen = () => {
   const dispatch = useDispatch();
@@ -16,8 +18,11 @@ const InfoScreen = () => {
   const search = useSelector(state => state.search)
   const loading = useSelector(state => state.loading.isLoading)
   const categories = useSelector(state => state.categories.filters)
+  const vegan = useSelector(state => state.categories.vegan)
   const [foodList, setFoodList] = useState([])
-  const [foodInfo, setFoodInfo] = useState({})
+  const [minRange, setMinRange] = useState(0)
+  const [maxRange, setMaxRange] = useState(15)
+  const [count, setCount] = useState(null)
 
   const fetchInfo = useMemo(() => async (name) => {
     try {
@@ -37,15 +42,25 @@ const InfoScreen = () => {
   }, []);
 
   useEffect(() => {
-    if (categories.length > 0) {
+    if (categories.length > 0 || vegan) {
       const fetchCategory = async () => {
         try {
           dispatch(startLoading());
-          const { data } = await supabase
-            .from('foods')
-            .select(`id, name, season_icon, product_category`)
-          .contains('benefits', categories)
-          setFoodList(data);
+          if (vegan === false) {
+            const { data } = await supabase
+              .from('foods')
+              .select(`id, name, season_icon, product_category`)
+              .contains('benefits', categories)
+              .range(minRange, maxRange)
+            setFoodList(data);
+          } else {
+            const { data } = await supabase
+              .from('foods')
+              .select(`id, name, season_icon, product_category`)
+              .contains('benefits', categories)
+              .eq('vegan', true)
+            setFoodList(data);
+          }
         } catch (error) {
           console.log('Error fetching info:', error);
           throw error;
@@ -56,18 +71,32 @@ const InfoScreen = () => {
       fetchCategory()
     } else {
       const fetchFood = async () => {
-        const { data } = await supabase
-          .from('foods')
-          .select(`
-          id, 
-          name,
-          season_icon,
-          product_category`)
-        setFoodList(data)
+        try {
+          dispatch(startLoading());
+          const { data, count } = await supabase
+            .from('foods')
+            .select(`
+            id, 
+            name,
+            season_icon,
+            product_category`, { count: 'exact' })
+            .range(minRange + 1, maxRange)
+            if (minRange === 0) {
+              setFoodList(data);
+            } else {
+              setFoodList(prevFoodList => [...prevFoodList, ...data]);
+            }
+          setCount(count - 1)
+        } catch (error) {
+          console.log('Error fetching info:', error);
+          throw error;
+        } finally {
+          dispatch(finishLoading());
+        }
       }
       fetchFood()
     }
-  }, [categories])
+  }, [categories, vegan, minRange])
 
   useEffect(() => {
     const filterFunc = () => {
@@ -83,21 +112,65 @@ const InfoScreen = () => {
     filterFunc();
   }, [search]);
 
+  // useEffect(() => {
+  //   const fetchOnReachEnded = async () => {
+  //     try {
+  //       dispatch(startLoading());
+  //       const { data, count } = await supabase
+  //         .from('foods')
+  //         .select(`
+  //         id, 
+  //         name,
+  //         season_icon,
+  //         product_category`,
+  //           { count: 'exact' })
+  //         .range(minRange, nextRange)
+  //       setMaxRange(count)
+  //       setFoodList(data)
+  //     } catch (error) {
+  //       console.log('Error fetching info:', error);
+  //       throw error;
+  //     } finally {
+  //       dispatch(finishLoading());
+  //     }
+  //   }
+  //   fetchOnReachEnded()
+  // }, [minRange])
+
+  const handleRange =  () => {
+    if ((maxRange + 2) > count || minRange === maxRange) {
+      setMaxRange(count)
+    } else {
+      setMinRange(maxRange)
+      setMaxRange(maxRange + 2)
+    }
+  }
+
   return (
     <>
-      {loading ? (
-        <ActivityIndicator style={{ flex: 1 }} size="large" color={colors.accent} />
-      ) : (
+      {
         filter.length === 0 || foodList.length === 0
           ? <Text style={styles.text}>No results found</Text>
           : (
             <FlatList
+              onEndReachedThreshold={0.2}
+              onEndReached={({ distanceFromEnd }) => {
+                if (distanceFromEnd >= 0) {
+                  handleRange()
+                }
+              }}
+              ListFooterComponent={
+                <>
+                  {loading ? <ActivityIndicator style={{ flex: 1 }} size="large" color={colors.accent} /> : null}
+                  <Footer />
+                </>
+              }
               data={foodList}
               keyExtractor={item => item.id.toString()}
-              renderItem={({ item }) => <InfoCard fetchInfo={fetchInfo} foodInfo={foodInfo} expandedCard={expandedCard} loading={loading} setExpandedCard={setExpandedCard} food={item} />}
+              renderItem={({ item }) => <InfoCard fetchInfo={fetchInfo} expandedCard={expandedCard} loading={loading} setExpandedCard={setExpandedCard} food={item} />}
             />
           )
-      )}
+      }
     </>
   );
 };

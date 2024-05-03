@@ -2,8 +2,8 @@ import React, { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import CustomIcon from '../CustomIcon/CustomIcon';
 
-const SeasonIcons = memo(({ seasonInfo, colors }) => (
-  <View style={[styles.seasons, { borderColor: colors.accent, backgroundColor: colors.background }]}>
+const SeasonIcons = memo(({ seasonInfo }) => (
+  <View style={styles.seasons}>
     {seasonInfo?.map((icon, index) => (
       <CustomIcon
         key={index}
@@ -32,12 +32,11 @@ const getIconColor = (icon) => {
 
 const styles = StyleSheet.create({
   seasons: {
-    flex: 0, 
-    gap: 6, 
+    flex: 1,
     flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center',  
-    borderWidth: 1, 
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 12,
     borderRadius: 50, 
     paddingVertical: 4, 
     paddingHorizontal: 8, 

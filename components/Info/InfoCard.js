@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, Image } from 'react-native-elements';
-import { StyleSheet, Text, ActivityIndicator } from 'react-native';
+import { StyleSheet, ActivityIndicator } from 'react-native';
 import { View } from 'react-native';
 import { supabase } from '../../supabase/supabase';
 import { useTheme } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import Benefits from './Benefits';
 import Counts from './Counts';
-import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Skeleton } from '@rneui/base';
-import SeasonIcons from './SeasonIcon';
 
 const InfoCard = ({ food, expandedCard, setExpandedCard, fetchInfo }) => {
   const { name, season_icon, product_category } = food;
@@ -19,19 +17,6 @@ const InfoCard = ({ food, expandedCard, setExpandedCard, fetchInfo }) => {
   const isExpanded = expandedCard === name;
 
   const imageUrl = supabase.storage.from('products').getPublicUrl(`${name.toLowerCase()}.webp`)
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     setLoading(true);
-  //     const response = await fetchInfo(name);
-  //     if (response.error) {
-  //       console.log('error', error);
-  //     }
-  //     setFoodInfo(response.data);
-  //     setLoading(false);
-  //   };
-  //   fetchData();
-  // }, [isExpanded]);
 
   const handleFetch = async (name) => {
     if (isExpanded) {
@@ -68,7 +53,6 @@ const InfoCard = ({ food, expandedCard, setExpandedCard, fetchInfo }) => {
             {name}
           </Card.Title>
         </View>
-        {product_category === 'Fruta' ? <SeasonIcons seasonInfo={season_icon} colors={colors} /> : null}
         <MaterialIcons.Button iconStyle={[isExpanded ? { transform: [{ rotate: '180deg' }] } : null, { marginRight: 0 }]} underlayColor='none' backgroundColor='transparent' color={colors.text}
           onPress={
             () => {
@@ -79,11 +63,13 @@ const InfoCard = ({ food, expandedCard, setExpandedCard, fetchInfo }) => {
       </View>
       <View style={[styles.description, isExpanded ? { height: 'fit' } : { height: 0, }]}>
         <Card.Divider style={{ borderColor: '#fff', marginHorizontal: 12 }} />
-        {loading ? <ActivityIndicator size="large" style={{padding: 6}} color={colors.accent} /> : null}
+        {loading ? <ActivityIndicator size="large" style={{ padding: 6 }} color={colors.accent} /> : null}
         {foodInfo && !loading
           ? (
-            <Animated.View entering={FadeInUp} style={{paddingBottom: 12}}>
+            <Animated.View entering={FadeInUp} style={{ paddingBottom: 12 }}>
               <Counts
+                product_category={product_category}
+                season_icon={season_icon}
                 nutritional_information={foodInfo?.nutritional_information}
                 description={foodInfo?.description}
               />
@@ -98,14 +84,15 @@ const InfoCard = ({ food, expandedCard, setExpandedCard, fetchInfo }) => {
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 6,
     padding: 0,
+    margin: 8,
+    marginBottom: 8,
   },
   wrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 6
+    padding: 6,
   },
   card: {
     flex: 1,

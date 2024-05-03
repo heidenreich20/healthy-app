@@ -40,7 +40,7 @@ export default Search = ({ navigation }) => {
           dispatch(searchLoading(true))
         }}
         onClearText={() => console.log(onClearText())}
-        placeholder="Buscar..."
+        placeholder="Search..."
         placeholderTextColor="#888"
         showCancel
         cancelButtonTitle="Cancel"

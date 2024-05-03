@@ -4,7 +4,7 @@ import { useTheme } from '@react-navigation/native'
 import { SearchBar } from '@rneui/themed';
 import InfoScreen from '../Info/InfoScreen';
 import Search from '../Search/Search';
-import Filters from '../Filters/Filters';
+import Footer from '../Footer/Footer';
 
 const HomeScreen = ({ navigation }) => {
 

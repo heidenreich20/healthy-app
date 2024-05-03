@@ -1,20 +1,12 @@
 import React, { useState } from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, Switch, Text } from 'react-native'
 import { useTheme } from '@react-navigation/native'
 import { Button } from 'react-native-elements'
-import { addCategory } from '../../redux/features/categories/categoriesSlice'
+import { addCategory, toggleVegan } from '../../redux/features/categories/categoriesSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import CategoryButton from './CategoryButton'
 
 const categories = [
-  {
-    id: 1,
-    name: 'Vegan',
-  },
-  {
-    id: 2,
-    name: 'Vegetarian',
-  },
   {
     id: 3,
     name: 'Gluten Free',
@@ -93,7 +85,7 @@ const categories = [
   },
   {
     id: 22,
-    name: 'High Iron',
+    name: "High Magnesium"
   }
 ]
 
@@ -101,7 +93,9 @@ const Filters = ({ navigation }) => {
   const dispatch = useDispatch()
   const { colors } = useTheme()
   const storeCategories = useSelector(state => state.categories.filters)
+  const vegan = useSelector(state => state.categories.vegan)
   const [filters, setFilters] = useState(storeCategories)
+  const [veganFilter, setVeganFilter] = useState(vegan)
 
   const handleCategory = (category) => {
     const isSelected = filters.includes(category.name);
@@ -114,6 +108,9 @@ const Filters = ({ navigation }) => {
 
   const applyFilters = () => {
     try {
+      if (veganFilter !== vegan) {
+        dispatch(toggleVegan())
+      }
       dispatch(addCategory(filters));
     } catch (error) {
       console.log(error);
@@ -123,23 +120,34 @@ const Filters = ({ navigation }) => {
   }
 
   return (
-    <View style={{flex: 1}}>
-        <View style={{ flex: 1, justifyContent: 'center', backgroundColor: colors.primary }}>
-          <View style={styles.categoryWrapper}>
-            {categories.map((category) => {
-              return (
-                <CategoryButton
-                  key={category.id}
-                  isSelected={filters.includes(category.name)}
-                  category={category}
-                  colors={colors}
-                  handleCategory={handleCategory}
-                />
-              )
-            })}
-          </View>
-          <Button disabled={filters === storeCategories} onPress={applyFilters} containerStyle={{ flex: 0, alignItems: 'center' }} buttonStyle={{ width: '33%', backgroundColor: colors.accent }} title='filter' />
+    <View style={{ flex: 1, backgroundColor: colors.primary }}>
+      <View style={{ flex: 0, justifyContent: 'center'}}>
+        <View style={[styles.veganContainer, {backgroundColor: colors.background, borderBottomColor: colors.accent}]}>
+          <Text style={{color: '#3e3e3e', fontWeight: '400', fontSize: 16}}>Vegano</Text>
+          <Switch
+          style={{width: 50}}
+            trackColor={{ false: '#767577', true: colors.accent }}
+            thumbColor='white'
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={() => setVeganFilter(!veganFilter)}
+            value={veganFilter}
+          />
         </View>
+        <View style={styles.categoryWrapper}>
+          {categories.map((category) => {
+            return (
+              <CategoryButton
+                key={category.id}
+                isSelected={filters.includes(category.name)}
+                category={category}
+                colors={colors}
+                handleCategory={handleCategory}
+              />
+            )
+          })}
+        </View>
+        <Button disabled={filters === storeCategories && veganFilter === vegan} onPress={applyFilters} containerStyle={{ flex: 0, alignItems: 'center', marginTop: 24 }} buttonStyle={{ width: '33%', backgroundColor: colors.accent }} title='filter' />
+      </View>
     </View>
   )
 }
@@ -149,10 +157,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 12
   },
-  categoryContainer: {
-    flex: 0,
-    gap: 12,
+  veganContainer: {
+    flex: 0, 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 12, 
+    borderBottomWidth: 1, 
   },
+  // categoryContainer: {
+  //   flex: 1,
+  //   gap: 12,
+  // },
   categoryListWrapper: {
     flexDirection: 'row',
     gap: 6,
